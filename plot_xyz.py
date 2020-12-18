@@ -54,7 +54,7 @@ def load_xyz(filename):
     return data
 
 
-def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True):
+def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True, interval=50):
     """
     Make a matplotlib animation of the supplied data.
 
@@ -140,7 +140,7 @@ def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True):
     # I don't quite understand what blit does but without it
     # the old particles are not removed
     anim = matplotlib.animation.FuncAnimation(
-        fig, update, nframe, interval=50, blit=False
+        fig, update, nframe, interval=interval, blit=False
     )
 
     # This displays the animation
@@ -155,7 +155,7 @@ def annotate3D(ax, s, xyz, *args, **kwargs):
     ax.add_artist(tag)
     return tag
 
-def animate_xyz_3d(data, skip=10, size=8):
+def animate_xyz_3d(data, skip=10, size=8, interval=50):
     """
     Make a matplotlib animation of the supplied data.
 
@@ -221,7 +221,7 @@ def animate_xyz_3d(data, skip=10, size=8):
     # I don't quite understand what blit does but without it
     # the old particles are not removed
     anim = matplotlib.animation.FuncAnimation(
-        fig, update, nframe, interval=50, blit=False
+        fig, update, nframe, interval=interval, blit=False
     )
 
     # This displays the animation
@@ -280,6 +280,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--interval", "-i", type=int, default=50, help="Milliseconds between frames"
+)
+
+parser.add_argument(
     "--steps", "-s", type=int, default=1, help="Number of steps per frame of the animation"
 )
 
@@ -332,9 +336,9 @@ def main():
         mode = "xy"
     # make the plot
     if vars(args)['3d']:
-        animate_xyz_3d(data, skip=args.steps, size=args.size)
+        animate_xyz_3d(data, skip=args.steps, size=args.size, interval=args.interval)
     else:
-        animate_xyz_2d(data, skip=args.steps, mode=mode, size=args.size, show_labels=not args.no_labels)
+        animate_xyz_2d(data, skip=args.steps, mode=mode, size=args.size, show_labels=not args.no_labels, interval=args.interval)
     
 
 
