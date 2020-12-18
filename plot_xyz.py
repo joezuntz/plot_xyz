@@ -1,5 +1,5 @@
 """
-Simple plotting of XYZ files using matplotlib animations
+Simple plotting of XYZ files using matplotlib animations.
 """
 import numpy as np
 import matplotlib
