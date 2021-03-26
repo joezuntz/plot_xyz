@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Simple plotting of XYZ files using matplotlib animations.
 """
@@ -376,7 +377,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--trajectory",
-    "-t"
+    "-t",
     action="store_true",
     dest="trajectory",
     help="Only plot the trajectories for the full simulation"
