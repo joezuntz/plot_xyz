@@ -146,7 +146,64 @@ def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True, interval=
     # This displays the animation
     plt.show()
 
+def plot_xyz_trajectory(data, skip=10, size=8, mode="xy", show_labels=True, interval=50):
+    """
+    Make a matplotlib plot of the trejctory of the supplied data.
 
+    Parameters
+    ----------
+    data: dict
+        Maps particle names to (nstep, 3) xyz numpy arrays
+    skip: int
+        Number of time steps to skip per frame. Default = 10
+    show_labels: bool
+        Show text name by each particle.  Default = True
+
+    Returns
+    -------
+    None
+    """
+    # Make the array
+    fig, ax = plt.subplots()
+
+    if mode == "xy":
+        x = 0
+        y = 1
+    elif mode == "yz":
+        x = 1
+        y = 2
+    elif mode == "xz":
+        x = 0
+        y = 2
+    else:
+        raise ValueError(f"Unknown plotting mode {mode}")
+
+
+    # Convert our dictionary to one big 3D array (bodies, time, xyz)
+    trajectories = np.array([T for T in data.values()])
+    nbody = len(data)
+
+    # Make a scatter plot of the (x, y) positions (0, 1) at the first time
+    # step.  Size 8 is reasonably visible, and we use a different colour for
+    # each particle just by setting the c argument to the array [0, 1, 2, 3, ..]
+    for body_data in trajectories:
+        S = ax.plot(
+            body_data[:, x],
+            body_data[:, y]
+        )
+
+    # Make the labels by each object.  We will animate them too.
+    # Remove the "|0", "|1" etc.
+    if show_labels:
+        labels = []
+        for name, t in data.items():
+            labels.append(ax.annotate(name.split("|")[0], [t[0, x], t[0, y]]))
+
+    # Make sure the x and y axes are scaled the same
+    ax.axis("equal")
+
+    # This displays the animation
+    plt.show()
 
 def annotate3D(ax, s, xyz, *args, **kwargs):
     '''add anotation text s to to Axes3d ax'''
@@ -317,6 +374,13 @@ parser.add_argument(
     help="Omit labels, for example if there are too many of them",
 )
 
+parser.add_argument(
+    "--trajectory",
+    "-t"
+    action="store_true",
+    dest="trajectory",
+    help="Only plot the trajectories for the full simulation"
+)
 
 def main():
     # In the main function we use the parser object we made above
@@ -324,6 +388,7 @@ def main():
     # use the dot syntax to get the chosen values
     args = parser.parse_args()
     data = load_xyz(args.filename)
+
     # recenter, if desired
     if args.center:
         data = recenter_xyz(data, args.center)
@@ -335,11 +400,18 @@ def main():
     else:
         mode = "xy"
     # make the plot
-    if vars(args)['3d']:
-        animate_xyz_3d(data, skip=args.steps, size=args.size, interval=args.interval)
+    if args.trajectory:
+        plot_xyz_trajectory(data, skip=args.steps, mode=mode,
+                            size=args.size, show_labels=not args.no_labels,
+                            interval=args.interval)
     else:
-        animate_xyz_2d(data, skip=args.steps, mode=mode, size=args.size, show_labels=not args.no_labels, interval=args.interval)
-    
+        if vars(args)['3d']:
+            animate_xyz_3d(data, skip=args.steps,
+                           size=args.size, interval=args.interval)
+        else:
+            animate_xyz_2d(data, skip=args.steps, mode=mode,
+                           size=args.size, show_labels=not args.no_labels, interval=args.interval)
+
 
 
 if __name__ == "__main__":
