@@ -2,14 +2,14 @@
 """
 Simple plotting of XYZ files using matplotlib animations.
 """
-import numpy as np
-import matplotlib
-import matplotlib.animation
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
 import sys
 import collections
 import argparse
+import numpy as np
+import matplotlib
+import matplotlib.animation
+import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d
 
 
 def load_xyz(filename):
@@ -29,26 +29,26 @@ def load_xyz(filename):
     dict
         Dictionary mapping particle name to trajectory
     """
-    f = open(filename)
-    # The built-in python "collections" module contains various handy tools.
-    # In this case we are using a special form of a dictionary which returns
-    # an empty object (list, in this case) when the key is not found.
-    # We use it here because we don't know the names of particles in advance,
-    # and this just creates them as we go along.
-    data = collections.defaultdict(list)
-    while True:
-        line = f.readline()
-        # if we have reached the end of the file, finish
-        if line == "":
-            break
-        # otherwise line is the particle count
-        n = int(float(line))
-        # ignore the comment line
-        _ = f.readline()
-        for i in range(n):
-            name, x, y, z = f.readline().split()
-            name = name + f"|{i}"
-            data[name].append((float(x), float(y), float(z)))
+    with open(filename, "r") as f:
+        # The built-in python "collections" module contains various handy tools.
+        # In this case we are using a special form of a dictionary which returns
+        # an empty object (list, in this case) when the key is not found.
+        # We use it here because we don't know the names of particles in advance,
+        # and this just creates them as we go along.
+        data = collections.defaultdict(list)
+        while True:
+            line = f.readline()
+            # if we have reached the end of the file, finish
+            if line == "":
+                break
+            # otherwise line is the particle count
+            n = int(float(line))
+            # ignore the comment line
+            _ = f.readline()
+            for i in range(n):
+                name, x, y, z = f.readline().split()
+                name = name + f"|{i}"
+                data[name].append((float(x), float(y), float(z)))
 
     # Convert the lists to arrays. This is called a dictionary comprehension.
     data = {name: np.array(d) for name, d in data.items()}
@@ -89,7 +89,7 @@ def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True, interval=
 
 
     # Convert our dictionary to one big 3D array (bodies, time, xyz)
-    trajectories = np.array([T for T in data.values()])
+    trajectories = np.array(list(data.values()))
     nbody = len(data)
 
     # Make a scatter plot of the (x, y) positions (0, 1) at the first time
@@ -147,7 +147,9 @@ def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True, interval=
     # This displays the animation
     plt.show()
 
-def plot_xyz_trajectory(data, skip=10, size=8, mode="xy", show_labels=True, interval=50):
+    return anim
+
+def plot_xyz_trajectory(data, skip=10, mode="xy", show_labels=True):
     """
     Make a matplotlib plot of the trejctory of the supplied data.
 
@@ -165,7 +167,7 @@ def plot_xyz_trajectory(data, skip=10, size=8, mode="xy", show_labels=True, inte
     None
     """
     # Make the array
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
 
     if mode == "xy":
         x = 0
@@ -181,24 +183,22 @@ def plot_xyz_trajectory(data, skip=10, size=8, mode="xy", show_labels=True, inte
 
 
     # Convert our dictionary to one big 3D array (bodies, time, xyz)
-    trajectories = np.array([T for T in data.values()])
-    nbody = len(data)
+    trajectories = np.array(list(data.values()))
 
     # Make a scatter plot of the (x, y) positions (0, 1) at the first time
     # step.  Size 8 is reasonably visible, and we use a different colour for
     # each particle just by setting the c argument to the array [0, 1, 2, 3, ..]
     for body_data in trajectories:
-        S = ax.plot(
-            body_data[:, x],
-            body_data[:, y]
+        ax.plot(
+            body_data[::skip, x],
+            body_data[::skip, y]
         )
 
     # Make the labels by each object.  We will animate them too.
     # Remove the "|0", "|1" etc.
     if show_labels:
-        labels = []
         for name, t in data.items():
-            labels.append(ax.annotate(name.split("|")[0], [t[0, x], t[0, y]]))
+            ax.annotate(name.split("|")[0], [t[0, x], t[0, y]])
 
     # Make sure the x and y axes are scaled the same
     ax.axis("equal")
@@ -206,12 +206,7 @@ def plot_xyz_trajectory(data, skip=10, size=8, mode="xy", show_labels=True, inte
     # This displays the animation
     plt.show()
 
-def annotate3D(ax, s, xyz, *args, **kwargs):
-    '''add anotation text s to to Axes3d ax'''
 
-    tag = Annotation3D(s, xyz, *args, **kwargs)
-    ax.add_artist(tag)
-    return tag
 
 def animate_xyz_3d(data, skip=10, size=8, interval=50):
     """
@@ -237,8 +232,7 @@ def animate_xyz_3d(data, skip=10, size=8, interval=50):
     ax = fig.add_subplot(111, projection='3d')
 
     # Convert our dictionary to one big 3D array (bodies, time, xyz)
-    trajectories = np.array([T for T in data.values()])
-    nbody = len(data)
+    trajectories = np.array(list(data.values()))
 
     # Make a scatter plot of the (x, y) positions (0, 1) at the first time
     # step.  Size 8 is reasonably visible, and we use a different colour for
@@ -403,8 +397,7 @@ def main():
     # make the plot
     if args.trajectory:
         plot_xyz_trajectory(data, skip=args.steps, mode=mode,
-                            size=args.size, show_labels=not args.no_labels,
-                            interval=args.interval)
+                            show_labels=not args.no_labels)
     else:
         if vars(args)['3d']:
             animate_xyz_3d(data, skip=args.steps,
