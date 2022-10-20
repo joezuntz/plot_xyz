@@ -55,7 +55,7 @@ def load_xyz(filename):
     return data
 
 
-def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True, interval=50):
+def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True, interval=50, output=""):
     """
     Make a matplotlib animation of the supplied data.
 
@@ -145,11 +145,14 @@ def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True, interval=
     )
 
     # This displays the animation
-    plt.show()
+    if output:
+        anim.save(output)
+    else:
+        plt.show()
 
     return anim
 
-def plot_xyz_trajectory(data, skip=10, mode="xy", show_labels=True):
+def plot_xyz_trajectory(data, skip=10, mode="xy", show_labels=True, output=""):
     """
     Make a matplotlib plot of the trejctory of the supplied data.
 
@@ -204,11 +207,14 @@ def plot_xyz_trajectory(data, skip=10, mode="xy", show_labels=True):
     ax.axis("equal")
 
     # This displays the animation
-    plt.show()
+    if output:
+        plt.savefig(output)
+    else:
+        plt.show()
 
 
 
-def animate_xyz_3d(data, skip=10, size=8, interval=50):
+def animate_xyz_3d(data, skip=10, size=8, interval=50, output=""):
     """
     Make a matplotlib animation of the supplied data.
 
@@ -276,8 +282,10 @@ def animate_xyz_3d(data, skip=10, size=8, interval=50):
         fig, update, nframe, interval=interval, blit=False
     )
 
-    # This displays the animation
-    plt.show()
+    if output:
+        anim.save(output)
+    else:
+        plt.show()
 
 
 def recenter_xyz(data, center):
@@ -377,6 +385,14 @@ parser.add_argument(
     help="Only plot the trajectories for the full simulation"
 )
 
+parser.add_argument(
+    "--output",
+    "-o",
+    type=str,
+    default="",
+    help="Save the result to this file."
+)
+
 def main():
     # In the main function we use the parser object we made above
     # to read what the user wrote on the command line.  Then we can
@@ -397,14 +413,14 @@ def main():
     # make the plot
     if args.trajectory:
         plot_xyz_trajectory(data, skip=args.steps, mode=mode,
-                            show_labels=not args.no_labels)
+                            show_labels=not args.no_labels, output=args.output)
     else:
         if vars(args)['3d']:
             animate_xyz_3d(data, skip=args.steps,
-                           size=args.size, interval=args.interval)
+                           size=args.size, interval=args.interval, output=args.output)
         else:
             animate_xyz_2d(data, skip=args.steps, mode=mode,
-                           size=args.size, show_labels=not args.no_labels, interval=args.interval)
+                           size=args.size, show_labels=not args.no_labels, interval=args.interval, output=args.output)
 
 
 
