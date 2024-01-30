@@ -109,8 +109,17 @@ def animate_xyz_2d(data, skip=10, size=8, mode="xy", show_labels=True, interval=
         for name, t in data.items():
             labels.append(ax.annotate(name.split("|")[0], [t[0, x], t[0, y]]))
 
+    xmin = np.min(trajectories[:, :, x])
+    xmax = np.max(trajectories[:, :, x])
+    ymin = np.min(trajectories[:, :, y])
+    ymax = np.max(trajectories[:, :, y])
+
+    plt.xlim(xmin, xmax)
+    plt.ylim(ymin, ymax)
     # Make sure the x and y axes are scaled the same
-    ax.axis("equal")
+    ax.set_aspect('equal', adjustable='box')
+
+
 
     # We will animate this title also.
     title = plt.title("Time Step 0")
